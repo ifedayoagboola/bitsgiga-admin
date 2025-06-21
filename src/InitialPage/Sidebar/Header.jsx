@@ -159,7 +159,7 @@ const Header = () => {
             onMouseOver={expandMenuOpen}
           >
             <Link to="/dashboard" className="logo logo-normal">
-              <ImageWithBasePath src="assets/img/logo-dark.png" alt="img" />
+              <ImageWithBasePath src="assets/img/logo.png" alt="img" />
             </Link>
             <Link to="/dashboard" className="logo logo-white">
               <ImageWithBasePath src="assets/img/logo-white.png" alt="img" />

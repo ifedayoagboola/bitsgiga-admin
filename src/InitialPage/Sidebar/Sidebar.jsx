@@ -59,10 +59,10 @@ const Sidebar = () => {
           {/* Logo */}
           <div className="sidebar-logo">
             <Link to={route.dashboard} className="logo logo-normal">
-              <ImageWithBasePath src="assets/img/logo.svg" alt="Img" />
+              <ImageWithBasePath src="assets/img/logo.png" alt="Img" />
             </Link>
             <Link to={route.dashboard} className="logo logo-white">
-              <ImageWithBasePath src="assets/img/logo-white.svg" alt="Img" />
+              <ImageWithBasePath src="assets/img/logo.png" alt="Img" />
             </Link>
             <Link to={route.dashboard} className="logo-small">
               <ImageWithBasePath src="assets/img/logo-small.png" alt="Img" />

@@ -96,12 +96,12 @@ import QuotationList from "../feature-module/sales/quotationlist";
 import Notes from "../feature-module/Application/notes";
 import FileManager from "../feature-module/Application/filemanager";
 import Profile from "../feature-module/pages/profile";
-import Signin from "../feature-module/pages/login/signinThree";
-import Register from "../feature-module/pages/register/registerThree";
-import Forgotpassword from "../feature-module/pages/forgotpassword/forgotpasswordThree";
-import Resetpassword from "../feature-module/pages/resetpassword/resetpasswordThree";
-import EmailVerification from "../feature-module/pages/emailverification/emailverificationThree";
-import Twostepverification from "../feature-module/pages/twostepverification/twostepverificationThree";
+import Signin from "../feature-module/pages/login/signin";
+import Register from "../feature-module/pages/register/register";
+import Forgotpassword from "../feature-module/pages/forgotpassword/forgotpassword";
+import Resetpassword from "../feature-module/pages/resetpassword/resetpassword";
+import EmailVerification from "../feature-module/pages/emailverification/emailverification";
+import Twostepverification from "../feature-module/pages/twostepverification/twostepverification";
 import Lockscreen from "../feature-module/pages/lockscreen";
 import Error404 from "../feature-module/pages/errorpages/error404";
 import Error500 from "../feature-module/pages/errorpages/error500";
@@ -134,8 +134,6 @@ import PosOrder from "../feature-module/sales/pos-order/posOrder";
 import Invoice from "../feature-module/sales/invoicereport";
 import Invoicedetails from "../feature-module/sales/invoicedetails";
 import Success from "../feature-module/pages/success/success";
-import SuccessTwo from "../feature-module/pages/success/successTwo";
-import SuccessThree from "../feature-module/pages/success/successThree";
 import Calendars from "../feature-module/Application/calendar";
 import EmailReply from "../feature-module/Application/emailReply";
 import Todo from "../feature-module/Application/todo/todo";
@@ -144,14 +142,10 @@ import PagesList from "../feature-module/content/pages";
 import AllBlogs from "../feature-module/content/blog/allBlogs";
 import Projects from "../feature-module/Application/projects";
 import Searchlist from "../feature-module/Application/searchlist";
-import LayoutDemo from "../feature-module/layout-pages/layoutdemo";
 import BlogDetails from "../feature-module/content/blog/blogDetails";
 import BlogTags from "../feature-module/content/blog/blogTags";
 import BlogCategories from "../feature-module/content/blog/blogCategories";
 import BlogComments from "../feature-module/content/blog/blogComments";
-import Cities from "../feature-module/content/location/cities";
-import Countries from "../feature-module/content/location/countries";
-import States from "../feature-module/content/location/states";
 import Testimonial from "../feature-module/content/testimonial";
 import Faq from "../feature-module/content/faq";
 import Activities from "../feature-module/pages/activities";
@@ -1083,85 +1077,6 @@ export const publicRoutes = [
     element: <BlogTags />,
     route: Route,
   },
-  
- 
-  {
-    id: 162,
-    path: routes.Horizontal,
-    name: "layout-horizontal",
-    element: <LayoutDemo />,
-    route: Route,
-  },
-  {
-    id: 163,
-    path: routes.Detached,
-    name: "layout-detached",
-    element: <LayoutDemo />,
-    route: Route,
-  },
-  {
-    id: 164,
-    path: routes.Modern,
-    name: "layout-modern",
-    element: <LayoutDemo />,
-    route: Route,
-  },
-  {
-    id: 165,
-    path: routes.TwoColumn,
-    name: "layout-two-column",
-    element: <LayoutDemo />,
-    route: Route,
-  },
-  {
-    id: 166,
-    path: routes.Hovered,
-    name: "layout-hovered",
-    element: <LayoutDemo />,
-    route: Route,
-  },
-  {
-    id: 167,
-    path: routes.Boxed,
-    name: "layout-boxed",
-    element: <LayoutDemo />,
-    route: Route,
-  },
-  {
-    id: 168,
-    path: routes.RTL,
-    name: "layout-rtl",
-    element: <LayoutDemo />,
-    route: Route,
-  },
-  {
-    id: 169,
-    path: routes.Dark,
-    name: "layout-dark",
-    element: <LayoutDemo />,
-    route: Route,
-  },
-  {
-    id: 170,
-    path: routes.cities,
-    name: "cities",
-    element: <Cities />,
-    route: Route,
-  },
-  {
-    id: 171,
-    path: routes.countries,
-    name: "countries",
-    element: <Countries />,
-    route: Route,
-  },
-  {
-    id: 172,
-    path: routes.states,
-    name: "states",
-    element: <States />,
-    route: Route,
-  },
   {
     id: 173,
     path: routes.testimonial,
@@ -1298,20 +1213,6 @@ export const pagesRoute = [
     path: routes.success,
     name: "success",
     element: <Success />,
-    route: Route,
-  },
-  {
-    id: 23,
-    path: routes.successTwo,
-    name: "success-2",
-    element: <SuccessTwo />,
-    route: Route,
-  },
-  {
-    id: 24,
-    path: routes.successThree,
-    name: "success-3",
-    element: <SuccessThree />,
     route: Route,
   },
 ];

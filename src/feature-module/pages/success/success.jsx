@@ -1,7 +1,7 @@
 import React from 'react'
 import { all_routes } from '../../../Router/all_routes'
-import ImageWithBasePath from '../../../core/img/imagewithbasebath';
 import { Link } from 'react-router-dom';
+import ImageWithBasePath from '../../../core/img/imagewithbasebath';
 
 const Success = () => {
 
@@ -13,33 +13,37 @@ const Success = () => {
                 {/* Main Wrapper */}
                 <div className="main-wrapper">
                     <div className="account-content">
-                        <div className="login-wrapper register-wrap bg-img">
-                            <div className="login-content authent-content">
-                                <div className="login-userset">
-                                    <div className="login-userset">
-                                        <div className="login-logo logo-normal">
+                        <div className="login-wrapper login-new">
+                            <div className="row w-100">
+                                <div className="col-lg-5 mx-auto">
+                                    <div className="login-content user-login">
+                                        <div className="login-logo">
                                             <ImageWithBasePath src="assets/img/logo.png" alt="img" />
+                                            <Link to={route.dashboard} className="login-logo logo-white">
+                                                <ImageWithBasePath src="assets/img/logo-white.png" alt="Img" />
+                                            </Link>
+                                        </div>
+                                        <div className="card">
+                                            <div className="card-body p-5">
+                                                <div className="login-userheading text-center">
+                                                    <ImageWithBasePath src="assets/img/icons/check-icon.svg" alt="Icon" />
+                                                    <h3 className="text-center">Success</h3>
+                                                    <h4 className="verfy-mail-content text-center">
+                                                        Your Passwrod Reset Successfully!
+                                                    </h4>
+                                                </div>
+                                                <div className="form-login mb-0">
+                                                    <Link className="btn btn-login mt-0" to={route.signinthree}>
+                                                        Back to Login
+                                                    </Link>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                    <Link to={route.dashboard} className="login-logo logo-white">
-                                        <ImageWithBasePath src="assets/img/logo-white.png" alt="Img" />
-                                    </Link>
-                                    <div className="login-userheading text-center">
-                                        <ImageWithBasePath src="assets/img/icons/check-icon.svg" alt="Icon" />
-                                        <h3 className="text-center">Success</h3>
-                                        <h4 className="verfy-mail-content text-center">
-                                            Your Passwrod Reset Successfully!
-                                        </h4>
-                                    </div>
-                                    <div className="form-login">
-                                        <Link className="btn btn-login mt-0" to={route.signin}>
-                                            Back to Login
-                                        </Link>
-                                    </div>
-                                    <div className="my-4 d-flex justify-content-center align-items-center copyright-text">
-                                        <p>Copyright © 2025 DreamsPOS</p>
-                                    </div>
                                 </div>
+                            </div>
+                            <div className="my-4 d-flex justify-content-center align-items-center copyright-text">
+                                <p>Copyright © 2025 DreamsPOS</p>
                             </div>
                         </div>
                     </div>
