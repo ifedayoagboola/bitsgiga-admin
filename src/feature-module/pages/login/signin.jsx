@@ -31,8 +31,8 @@ const Signin = () => {
                         <div className="login-userheading">
                           <h3>Sign In</h3>
                           <h4>
-                            Access the Dreamspos panel using your email and
-                            passcode.
+                            Access the Bitshub panel using your email and
+                            password.
                           </h4>
                         </div>
                         <div className="mb-3">
@@ -149,7 +149,7 @@ const Signin = () => {
                   </form>
                 </div>
                 <div className="my-4 d-flex justify-content-center align-items-center copyright-text">
-                  <p>Copyright © 2025 DreamsPOS</p>
+                  <p>Copyright © 2025 Bitshub</p>
                 </div>
               </div>
             </div>

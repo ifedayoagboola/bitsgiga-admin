@@ -37,7 +37,7 @@ const Register = () => {
                       <div className="card-body p-5">
                         <div className="login-userheading">
                           <h3>Register</h3>
-                          <h4>Create New Dreamspos Account</h4>
+                          <h4>Create New Bitshub Account</h4>
                         </div>
                         <div className="mb-3">
                           <label className="form-label">
@@ -185,7 +185,7 @@ const Register = () => {
                   </form>
                 </div>
                 <div className="my-4 d-flex justify-content-center align-items-center copyright-text">
-                  <p>Copyright © 2025 DreamsPOS</p>
+                  <p>Copyright © 2025 Bitshub</p>
                 </div>
               </div>
             </div>

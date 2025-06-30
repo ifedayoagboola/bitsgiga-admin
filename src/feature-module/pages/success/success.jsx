@@ -29,7 +29,7 @@ const Success = () => {
                                                     <ImageWithBasePath src="assets/img/icons/check-icon.svg" alt="Icon" />
                                                     <h3 className="text-center">Success</h3>
                                                     <h4 className="verfy-mail-content text-center">
-                                                        Your Passwrod Reset Successfully!
+                                                        Your Password Reset Successfully!
                                                     </h4>
                                                 </div>
                                                 <div className="form-login mb-0">
@@ -43,7 +43,7 @@ const Success = () => {
                                 </div>
                             </div>
                             <div className="my-4 d-flex justify-content-center align-items-center copyright-text">
-                                <p>Copyright © 2025 DreamsPOS</p>
+                                <p>Copyright © 2025 Bitshub</p>
                             </div>
                         </div>
                     </div>
