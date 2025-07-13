@@ -4,6 +4,7 @@ import ThemeSettings from '../InitialPage/themeSettings';
 import { Outlet, useLocation } from 'react-router-dom';
 import Header from "../InitialPage/Sidebar/Header";
 import Sidebar from "../InitialPage/Sidebar/Sidebar";
+import StoreCheck from '../core/components/StoreCheck';
 
 const HeaderLayouts = () => {
   const [showLoader, setShowLoader] = useState(true);
@@ -67,7 +68,9 @@ const HeaderLayouts = () => {
                 {/* <Loader /> */}
                 <Header />
                 <Sidebar />
-                              <Outlet />
+                <StoreCheck>
+                  <Outlet />
+                </StoreCheck>
                 {location.pathname.includes('layout') ? <></> : <ThemeSettings />}
 
               </div>

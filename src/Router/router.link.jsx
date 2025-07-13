@@ -90,6 +90,7 @@ import Callhistory from "../feature-module/Application/callhistory";
 import QRcode from "../feature-module/inventory/qrcode";
 import Customers from "../feature-module/people/customers";
 import StoreList from "../core/modals/peoples/storelist";
+import CreateStore from "../feature-module/pages/createStore";
 import SalesList from "../feature-module/sales/saleslist";
 import SalesReturn from "../feature-module/sales/salesreturn";
 import QuotationList from "../feature-module/sales/quotationlist";
@@ -171,6 +172,13 @@ export const publicRoutes = [
     path: routes.addproduct,
     name: "products",
     element: <AddProduct />,
+    route: Route,
+  },
+  {
+    id: 4,
+    path: routes.createStore,
+    name: "createStore",
+    element: <CreateStore />,
     route: Route,
   },
   {

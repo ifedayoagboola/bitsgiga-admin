@@ -80,6 +80,14 @@ useUpdateProductMutation()   // Update product
 useDeleteProductMutation()   // Delete product
 ```
 
+### **Updated Components**
+- **Add Product Page** - Now uses RTK Query with Formik validation
+  - Real-time category and store data from API
+  - Form validation with Yup schema
+  - Loading states and error handling
+  - Success notifications with toast
+  - Automatic navigation after successful creation
+
 ### **Category Management**
 ```javascript
 useGetCategoriesQuery()      // Get all categories

@@ -33,6 +33,7 @@ npm start
 - **Register Page** - Now uses RTK Query registration
 - **Store List** - Real API data with CRUD operations
 - **Store Management** - Activate, deactivate, delete stores
+- **Add Product Page** - RTK Query integration with Formik validation
 
 ### **✅ Available Features**
 - **Admin Login/Logout** with secure token management

@@ -1,8 +1,10 @@
 
 export const all_routes = {
   dashboard: "/index",
+  index: "/index",
   productlist: "/product-list",
   addproduct: "/add-product",
+  createStore: "/create-store",
   brandlist: "/brand-list",
   units: "/units",
   variantyattributes: "/variant-attributes",

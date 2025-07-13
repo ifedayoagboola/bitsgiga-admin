@@ -54,15 +54,24 @@ export const api = createApi({
     }),
 
     // ===== STORE MANAGEMENT ENDPOINTS =====
+    createStore: builder.mutation({
+      query: (storeData) => ({
+        url: '/store/create',
+        method: 'POST',
+        body: storeData,
+      }),
+      invalidatesTags: [{ type: 'Store', id: 'LIST' }],
+    }),
+
     getStores: builder.query({
       query: (params = {}) => ({
         url: '/store',
         params,
       }),
       providesTags: (result) =>
-        result
+        result?.data
           ? [
-              ...result.map(({ id }) => ({ type: 'Store', id })),
+              ...result.data.map(({ id }) => ({ type: 'Store', id })),
               { type: 'Store', id: 'LIST' },
             ]
           : [{ type: 'Store', id: 'LIST' }],
@@ -127,9 +136,9 @@ export const api = createApi({
         params,
       }),
       providesTags: (result) =>
-        result
+        result?.data
           ? [
-              ...result.map(({ id }) => ({ type: 'User', id })),
+              ...result.data.map(({ id }) => ({ type: 'User', id })),
               { type: 'User', id: 'LIST' },
             ]
           : [{ type: 'User', id: 'LIST' }],
@@ -167,9 +176,9 @@ export const api = createApi({
         params,
       }),
       providesTags: (result) =>
-        result
+        result?.data
           ? [
-              ...result.map(({ id }) => ({ type: 'Product', id })),
+              ...result.data.map(({ id }) => ({ type: 'Product', id })),
               { type: 'Product', id: 'LIST' },
             ]
           : [{ type: 'Product', id: 'LIST' }],
@@ -185,6 +194,24 @@ export const api = createApi({
         url: '/product/create',
         method: 'POST',
         body: productData,
+      }),
+      invalidatesTags: [{ type: 'Product', id: 'LIST' }],
+    }),
+
+    createProductVariant: builder.mutation({
+      query: (variantData) => ({
+        url: '/product/variant/create',
+        method: 'POST',
+        body: variantData,
+      }),
+      invalidatesTags: [{ type: 'Product', id: 'LIST' }],
+    }),
+
+    createProductVariantSpec: builder.mutation({
+      query: (specData) => ({
+        url: '/product/variant/spec/create',
+        method: 'POST',
+        body: specData,
       }),
       invalidatesTags: [{ type: 'Product', id: 'LIST' }],
     }),
@@ -217,9 +244,9 @@ export const api = createApi({
         params,
       }),
       providesTags: (result) =>
-        result
+        result?.data
           ? [
-              ...result.map(({ id }) => ({ type: 'Category', id })),
+              ...result.data.map(({ id }) => ({ type: 'Category', id })),
               { type: 'Category', id: 'LIST' },
             ]
           : [{ type: 'Category', id: 'LIST' }],
@@ -262,9 +289,9 @@ export const api = createApi({
         params,
       }),
       providesTags: (result) =>
-        result
+        result?.data
           ? [
-              ...result.map(({ id }) => ({ type: 'Order', id })),
+              ...result.data.map(({ id }) => ({ type: 'Order', id })),
               { type: 'Order', id: 'LIST' },
             ]
           : [{ type: 'Order', id: 'LIST' }],
@@ -295,9 +322,9 @@ export const api = createApi({
         params,
       }),
       providesTags: (result) =>
-        result
+        result?.data
           ? [
-              ...result.map(({ id }) => ({ type: 'Role', id })),
+              ...result.data.map(({ id }) => ({ type: 'Role', id })),
               { type: 'Role', id: 'LIST' },
             ]
           : [{ type: 'Role', id: 'LIST' }],
@@ -373,6 +400,7 @@ export const {
   useAdminLogoutMutation,
   
   // Stores
+  useCreateStoreMutation,
   useGetStoresQuery,
   useGetStoreQuery,
   useUpdateStoreMutation,
@@ -390,6 +418,8 @@ export const {
   useGetProductsQuery,
   useGetProductQuery,
   useCreateProductMutation,
+  useCreateProductVariantMutation,
+  useCreateProductVariantSpecMutation,
   useUpdateProductMutation,
   useDeleteProductMutation,
   
