@@ -22,7 +22,7 @@ jobs:
         id: meta
         run: |
           if [ "${{ github.ref_name }}" = "main" ]; then
-            echo "TAGS=latest" >> $GITHUB_OUTPUT
+            echo "TAGS=main" >> $GITHUB_OUTPUT
           else
             echo "TAGS=develop" >> $GITHUB_OUTPUT
           fi
