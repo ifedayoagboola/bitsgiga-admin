@@ -105,7 +105,7 @@ const Signin = () => {
                           <h3>Sign In</h3>
                           <h4>
                             Access the Bitshub panel using your email and
-                            password.
+                            password. (Dev branch)
                           </h4>
                         </div>
                         <div className="mb-3">
