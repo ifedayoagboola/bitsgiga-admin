@@ -2,14 +2,19 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 // Base query configuration
 const baseQuery = fetchBaseQuery({
-  baseUrl: process.env.REACT_APP_API_URL || 'http://localhost:3210/v1/dev',
-  prepareHeaders: (headers) => {
-    // Get token from localStorage
-    const token = localStorage.getItem('adminToken');
+  baseUrl: process.env.REACT_APP_API_URL,
+  prepareHeaders: (headers, { endpoint }) => {
+    // Skip authentication for registration and login endpoints
+    const publicEndpoints = ['adminRegister', 'adminLogin'];
     
-    // If we have a token, add it to the headers
-    if (token) {
-      headers.set('authorization', `Bearer ${token}`);
+    if (!publicEndpoints.includes(endpoint)) {
+      // Get token from localStorage
+      const token = localStorage.getItem('adminToken');
+
+      // If we have a token, add it to the headers
+      if (token) {
+        headers.set('authorization', `Bearer ${token}`);
+      }
     }
     
     // Set content type
@@ -17,6 +22,8 @@ const baseQuery = fetchBaseQuery({
     
     return headers;
   },
+
+  
 });
 
 // Create the API slice
@@ -26,6 +33,19 @@ export const api = createApi({
   tagTypes: ['Store', 'User', 'Product', 'Order', 'Category', 'Role', 'Dashboard'],
   
   endpoints: (builder) => ({
+    // ===== UPLOADS (R2) =====
+    presignUpload: builder.query({
+      query: ({ key, contentType }) => ({
+        url: '/uploads/presign',
+        params: { key, contentType }
+      }),
+    }),
+    presignViewUrl: builder.query({
+      query: ({ key }) => ({
+        url: '/uploads/view-url',
+        params: { key }
+      }),
+    }),
     // ===== AUTHENTICATION ENDPOINTS =====
     adminLogin: builder.mutation({
       query: (credentials) => ({
@@ -439,6 +459,9 @@ export const {
   useCreateRoleMutation,
   useUpdateRoleMutation,
   useDeleteRoleMutation,
+  // Uploads
+  usePresignUploadQuery,
+  usePresignViewUrlQuery,
   
   // Dashboard
   useGetDashboardStatsQuery,
