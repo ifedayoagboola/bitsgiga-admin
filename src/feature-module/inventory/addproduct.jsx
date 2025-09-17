@@ -122,9 +122,6 @@ const AddProduct = () => {
     { value: "Custom", label: "Custom" },
   ];
 
-  // Debug: Log size options
-  console.log("Size options:", sizeOptions);
-
   // Handle image upload
   const handleImageUpload = (event) => {
     const files = Array.from(event.target.files);
@@ -221,9 +218,7 @@ const AddProduct = () => {
         estimated_delivery_duration: parseInt(values.estimated_delivery_duration)
       };
 
-      const productResult = await createProduct(productData).unwrap();
-      console.log("Product creation result:", productResult);
-      
+      const productResult = await createProduct(productData).unwrap();      
       // Extract product ID from response (handle both direct and wrapped responses)
       const productId = productResult?.data?.id || productResult?.id;
       

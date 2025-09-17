@@ -5,7 +5,7 @@
 ### 1. **Environment Configuration**
 Create a `.env` file in the admin directory:
 ```env
-REACT_APP_API_URL=http://localhost:3210/v1/dev
+REACT_APP_API_URL=https://api-dev.bitsgiga.com/v1/dev
 NODE_ENV=development
 ```
 
