@@ -1,7 +1,7 @@
 name: build-admin
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
 jobs:
   docker:
     runs-on: ubuntu-latest
@@ -23,11 +23,15 @@ jobs:
         run: |
           if [ "${{ github.ref_name }}" = "main" ]; then
             echo "TAGS=main" >> $GITHUB_OUTPUT
+            echo "API_URL=https://api.bitsgiga.com" >> $GITHUB_OUTPUT
           else
             echo "TAGS=develop" >> $GITHUB_OUTPUT
+            echo "API_URL=https://api-dev.bitsgiga.com" >> $GITHUB_OUTPUT
           fi
       - name: Build & Push
         uses: docker/build-push-action@v6
         with:
           push: true
           tags: ghcr.io/ifedayoagboola/bitsgiga-admin:${{ steps.meta.outputs.TAGS }}
+          build-args: |
+            REACT_APP_API_URL=${{ steps.meta.outputs.API_URL }}
