@@ -105,10 +105,12 @@
     ]
   },
   "overrides": {
-    "semver": "~7.5.2"
+    "semver": "~7.5.2",
+    "typescript": "4.9.5"
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
-    "eslint": "^8.44.0"
+    "eslint": "^8.44.0",
+    "typescript": "4.9.5"
   }
 }

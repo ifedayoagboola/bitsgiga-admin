@@ -69,6 +69,7 @@ const AddProduct = () => {
   const [tags, setTags] = useState([]);
   const [productImages, setProductImages] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
+  // Upload progress can be added later if needed
   const [currentStep, setCurrentStep] = useState(1);
   const fileInputRef = useRef(null);
 
@@ -121,9 +122,6 @@ const AddProduct = () => {
     { value: "Custom", label: "Custom" },
   ];
 
-  // Debug: Log size options
-  console.log("Size options:", sizeOptions);
-
   // Handle image upload
   const handleImageUpload = (event) => {
     const files = Array.from(event.target.files);
@@ -156,6 +154,42 @@ const AddProduct = () => {
     setProductImages(prev => [...prev, ...newImages]);
   };
 
+  // Helper: upload a single file to R2 using presigned PUT
+  const presignAndUpload = async (file) => {
+    const apiBase = process.env.REACT_APP_API_URL;
+    const safeName = String(file.name || 'file').trim().replace(/\s+/g, '-');
+    const key = `media-dev/${crypto.randomUUID?.() || Math.random().toString(36).slice(2)}-${safeName}`;
+    const contentType = file.type || 'application/octet-stream';
+
+    // Get presigned upload URL
+    const presignRes = await fetch(`${apiBase}/uploads/presign?key=${encodeURIComponent(key)}&contentType=${encodeURIComponent(contentType)}`, {
+      method: 'GET',
+      credentials: 'include'
+    });
+    if (!presignRes.ok) throw new Error('Failed to presign upload');
+    
+    const { data, url } = await presignRes.json();
+    const uploadUrl = data?.url || url;
+    if (!uploadUrl) throw new Error('Invalid presign response');
+
+    // Upload file to R2
+    const putRes = await fetch(uploadUrl, { 
+      method: 'PUT', 
+      headers: { 'Content-Type': contentType }, 
+      body: file 
+    });
+    if (!putRes.ok) throw new Error('Upload failed');
+
+    // Get viewable URL
+    const viewRes = await fetch(`${apiBase}/uploads/view-url?key=${encodeURIComponent(key)}`, { 
+      credentials: 'include' 
+    });
+    if (!viewRes.ok) throw new Error('Failed to presign view url');
+    
+    const { data: viewData, url: viewUrl } = await viewRes.json();
+    return viewData?.url || viewUrl;
+  };
+
   // Remove image
   const removeImage = (index) => {
     setProductImages(prev => {
@@ -167,13 +201,13 @@ const AddProduct = () => {
   // Handle form submission - 3-step process
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     try {
-      setIsUploading(true);
-
-      // Validate that at least one image is uploaded
+      // Validate that at least one image is uploaded BEFORE setting uploading state
       if (productImages.length === 0) {
         toast.error("Please upload at least one product image");
         return;
       }
+
+      setIsUploading(true);
 
       // Step 1: Create Product
       const productData = {
@@ -184,9 +218,7 @@ const AddProduct = () => {
         estimated_delivery_duration: parseInt(values.estimated_delivery_duration)
       };
 
-      const productResult = await createProduct(productData).unwrap();
-      console.log("Product creation result:", productResult);
-      
+      const productResult = await createProduct(productData).unwrap();      
       // Extract product ID from response (handle both direct and wrapped responses)
       const productId = productResult?.data?.id || productResult?.id;
       
@@ -196,14 +228,23 @@ const AddProduct = () => {
       
       toast.success("Product created successfully!");
 
-      // Step 2: Create Product Variant
-      // TODO: Convert blob URLs to base64 or implement proper file upload
-      // For testing, we'll use placeholder URLs
-      const placeholderImageUrls = ["https://via.placeholder.com/300x300?text=Product+Image"];
+      // Step 2: Upload images to R2 and collect URLs
+      const uploadedUrls = [];
+      for (let i = 0; i < productImages.length; i++) {
+        const img = productImages[i];
+        try {
+          const url = await presignAndUpload(img.file);
+          uploadedUrls.push(url);
+        } catch (e) {
+          console.error('Image upload failed:', e);
+          toast.error(`Failed to upload ${img.name}`);
+          throw e;
+        }
+      }
       
       const variantData = {
         color: values.color,
-        img_urls: placeholderImageUrls, // Using placeholder URLs for now
+        img_urls: uploadedUrls,
         video_url: values.video_url || undefined,
         product_id: productId
       };

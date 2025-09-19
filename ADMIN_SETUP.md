@@ -5,8 +5,9 @@
 ### 1. **Environment Configuration**
 Create a `.env` file in the admin directory:
 ```env
-REACT_APP_API_URL=http://api.bitsgiga.com/v1/dev
-NODE_ENV=production
+REACT_APP_API_URL=https://api-dev.bitsgiga.com/v1/dev
+NODE_ENV=development
+
 ```
 
 ### 2. **Install Dependencies**

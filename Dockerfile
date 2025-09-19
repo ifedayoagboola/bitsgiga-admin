@@ -6,22 +6,26 @@ WORKDIR /app
 
 # Speed + fewer noisy logs
 ENV NPM_CONFIG_FUND=false \
-    NPM_CONFIG_AUDIT=false \
-    CI=true
+  NPM_CONFIG_AUDIT=false \
+  CI=true
 
 COPY package*.json ./
 
 # Use CI if lockfile exists, otherwise fallback to install
 # legacy-peer-deps avoids ERESOLVE pinches in older trees
 RUN if [ -f package-lock.json ]; then \
-      npm ci --legacy-peer-deps; \
-    else \
-      npm install --legacy-peer-deps; \
-    fi
+  npm ci --legacy-peer-deps; \
+  else \
+  npm install --legacy-peer-deps; \
+  fi
 
 COPY . .
+# Provide API base URL at build time for CRA
+ARG REACT_APP_API_URL
+ENV REACT_APP_API_URL=${REACT_APP_API_URL}
+
 # CRA outputs to ./build
-RUN npm run build
+RUN echo "Building with REACT_APP_API_URL=$REACT_APP_API_URL" && npm run build
 
 # ---- serve static with nginx ----
 FROM nginx:1.25-alpine
