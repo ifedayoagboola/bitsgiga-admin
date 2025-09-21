@@ -154,40 +154,61 @@ const AddProduct = () => {
     setProductImages(prev => [...prev, ...newImages]);
   };
 
-  // Helper: upload a single file to R2 using presigned PUT
+  // Helper: upload a single file to R2 using presigned PUT with fallback to base64
   const presignAndUpload = async (file) => {
     const apiBase = process.env.REACT_APP_API_URL;
     const safeName = String(file.name || 'file').trim().replace(/\s+/g, '-');
     const key = `media-dev/${crypto.randomUUID?.() || Math.random().toString(36).slice(2)}-${safeName}`;
     const contentType = file.type || 'application/octet-stream';
 
-    // Get presigned upload URL
-    const presignRes = await fetch(`${apiBase}/uploads/presign?key=${encodeURIComponent(key)}&contentType=${encodeURIComponent(contentType)}`, {
-      method: 'GET',
-      credentials: 'include'
-    });
-    if (!presignRes.ok) throw new Error('Failed to presign upload');
-    
-    const { data, url } = await presignRes.json();
-    const uploadUrl = data?.url || url;
-    if (!uploadUrl) throw new Error('Invalid presign response');
+    try {
+      // Try to get presigned upload URL
+      const presignRes = await fetch(`${apiBase}/uploads/presign?key=${encodeURIComponent(key)}&contentType=${encodeURIComponent(contentType)}`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+      
+      // If upload service is not available (404), fall back to base64
+      if (presignRes.status === 404) {
+        console.warn('Upload service not available, falling back to base64');
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (event) => resolve(event.target.result);
+          reader.readAsDataURL(file);
+        });
+      }
+      
+      if (!presignRes.ok) throw new Error('Failed to presign upload');
+      
+      const { data, url } = await presignRes.json();
+      const uploadUrl = data?.url || url;
+      if (!uploadUrl) throw new Error('Invalid presign response');
 
-    // Upload file to R2
-    const putRes = await fetch(uploadUrl, { 
-      method: 'PUT', 
-      headers: { 'Content-Type': contentType }, 
-      body: file 
-    });
-    if (!putRes.ok) throw new Error('Upload failed');
+      // Upload file to R2
+      const putRes = await fetch(uploadUrl, { 
+        method: 'PUT', 
+        headers: { 'Content-Type': contentType }, 
+        body: file 
+      });
+      if (!putRes.ok) throw new Error('Upload failed');
 
-    // Get viewable URL
-    const viewRes = await fetch(`${apiBase}/uploads/view-url?key=${encodeURIComponent(key)}`, { 
-      credentials: 'include' 
-    });
-    if (!viewRes.ok) throw new Error('Failed to presign view url');
-    
-    const { data: viewData, url: viewUrl } = await viewRes.json();
-    return viewData?.url || viewUrl;
+      // Get viewable URL
+      const viewRes = await fetch(`${apiBase}/uploads/view-url?key=${encodeURIComponent(key)}`, { 
+        credentials: 'include' 
+      });
+      if (!viewRes.ok) throw new Error('Failed to presign view url');
+      
+      const { data: viewData, url: viewUrl } = await viewRes.json();
+      return viewData?.url || viewUrl;
+    } catch (error) {
+      // If R2 upload fails, fall back to base64
+      console.warn('R2 upload failed, falling back to base64:', error);
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (event) => resolve(event.target.result);
+        reader.readAsDataURL(file);
+      });
+    }
   };
 
   // Remove image

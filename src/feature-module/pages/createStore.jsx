@@ -33,13 +33,73 @@ const CreateStore = () => {
   const route = all_routes;
   const navigate = useNavigate();
   const [storeImage, setStoreImage] = useState(null);
+  const [storeImageFile, setStoreImageFile] = useState(null);
 
   // RTK Query hooks
   const [createStore, { isLoading: isCreating }] = useCreateStoreMutation();
 
+  // Helper: upload a single file to R2 using presigned PUT with fallback to base64
+  const presignAndUpload = async (file) => {
+    const apiBase = process.env.REACT_APP_API_URL;
+    const safeName = String(file.name || 'file').trim().replace(/\s+/g, '-');
+    const key = `media-dev/${crypto.randomUUID?.() || Math.random().toString(36).slice(2)}-${safeName}`;
+    const contentType = file.type || 'application/octet-stream';
+
+    try {
+      // Try to get presigned upload URL
+      const presignRes = await fetch(`${apiBase}/uploads/presign?key=${encodeURIComponent(key)}&contentType=${encodeURIComponent(contentType)}`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+      
+      // If upload service is not available (404), fall back to base64
+      if (presignRes.status === 404) {
+        console.warn('Upload service not available, falling back to base64');
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (event) => resolve(event.target.result);
+          reader.readAsDataURL(file);
+        });
+      }
+      
+      if (!presignRes.ok) throw new Error('Failed to presign upload');
+      
+      const { data, url } = await presignRes.json();
+      const uploadUrl = data?.url || url;
+      if (!uploadUrl) throw new Error('Invalid presign response');
+
+      // Upload file to R2
+      const putRes = await fetch(uploadUrl, { 
+        method: 'PUT', 
+        headers: { 'Content-Type': contentType }, 
+        body: file 
+      });
+      if (!putRes.ok) throw new Error('Upload failed');
+
+      // Get viewable URL
+      const viewRes = await fetch(`${apiBase}/uploads/view-url?key=${encodeURIComponent(key)}`, { 
+        credentials: 'include' 
+      });
+      if (!viewRes.ok) throw new Error('Failed to presign view url');
+      
+      const { data: viewData, url: viewUrl } = await viewRes.json();
+      return viewData?.url || viewUrl;
+    } catch (error) {
+      // If R2 upload fails, fall back to base64
+      console.warn('R2 upload failed, falling back to base64:', error);
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (event) => resolve(event.target.result);
+        reader.readAsDataURL(file);
+      });
+    }
+  };
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      setStoreImageFile(file);
+      // Create preview URL for display
       const reader = new FileReader();
       reader.onload = (event) => {
         setStoreImage(event.target.result);
@@ -50,6 +110,20 @@ const CreateStore = () => {
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     try {
+      let imgUrl = null;
+      
+      // Upload image to R2 if provided (with fallback to base64)
+      if (storeImageFile) {
+        try {
+          imgUrl = await presignAndUpload(storeImageFile);
+          console.log('Image uploaded successfully:', imgUrl ? 'R2 URL' : 'Base64');
+        } catch (e) {
+          console.error('Image upload failed:', e);
+          toast.error('Failed to upload store image');
+          throw e;
+        }
+      }
+
       const storeData = {
         brand_name: values.brand_name,
         description: values.description,
@@ -57,14 +131,17 @@ const CreateStore = () => {
         state: values.state,
         city: values.city,
         street: values.street,
-        img_url: storeImage,
+        img_url: imgUrl || '',
       };
 
       await createStore(storeData).unwrap();
       
       toast.success("Store created successfully! Your application is under review.");
+      
+      // Reset form and state
       resetForm();
       setStoreImage(null);
+      setStoreImageFile(null);
       
       // Redirect to dashboard after a short delay
       setTimeout(() => {
@@ -72,7 +149,18 @@ const CreateStore = () => {
       }, 2000);
     } catch (error) {
       console.error("Error creating store:", error);
-      toast.error(error?.data?.message || "Failed to create store");
+      
+      // Handle specific error cases (consistent with addproduct.jsx)
+      if (error?.status === 401) {
+        toast.error("Authentication required. Please log in again.");
+        navigate('/signin');
+      } else if (error?.data?.message) {
+        toast.error(error.data.message);
+      } else if (error?.error) {
+        toast.error(error.error);
+      } else {
+        toast.error("Failed to create store. Please try again.");
+      }
     } finally {
       setSubmitting(false);
     }
@@ -89,36 +177,34 @@ const CreateStore = () => {
 
   return (
     <>
-      <div className="page-wrapper">
-        <div className="content">
-          <div className="page-header">
-            <div className="add-item d-flex">
-              <div className="page-title">
-                <h4>Create Your First Store</h4>
-                <h6>Set up your store to start selling products</h6>
-              </div>
-            </div>
-            <ul className="table-top-head">
-              <li>
-                <div className="page-btn">
-                  <Link to={route.index} className="btn btn-secondary">
-                    <ArrowLeft className="me-2" />
-                    Back to Dashboard
-                  </Link>
+      <div className="d-flex flex-column min-vh-100">
+        <div className="container-fluid py-5 flex-grow-1">
+          <div className="row justify-content-center">
+            <div className="col-lg-8 col-xl-6">
+                <div className="page-header text-center mb-4">
+                  <div className="add-item d-flex flex-column align-items-center">
+                    <div className="page-title">
+                      <h4>Create Your First Store</h4>
+                      <h6>Set up your store to start selling products</h6>
+                    </div>
+                  </div>
+                  <div className="mt-3">
+                    <Link to={route.index} className="btn btn-secondary">
+                      <ArrowLeft className="me-2" />
+                      Back to Dashboard
+                    </Link>
+                  </div>
                 </div>
-              </li>
-            </ul>
-          </div>
 
-          <Formik
-            initialValues={initialValues}
-            validationSchema={StoreSchema}
-            onSubmit={handleSubmit}
-          >
-            {({ errors, touched, isSubmitting }) => (
-              <Form className="create-store-form">
-                <div className="create-store">
-                  <div className="accordions-items-seperate" id="accordionSpacingExample">
+                <Formik
+                  initialValues={initialValues}
+                  validationSchema={StoreSchema}
+                  onSubmit={handleSubmit}
+                >
+                  {({ errors, touched, isSubmitting }) => (
+                    <Form className="create-store-form">
+                      <div className="create-store">
+                        <div className="accordions-items-seperate" id="accordionSpacingExample">
                     <div className="accordion-item border mb-4">
                       <h2 className="accordion-header" id="headingSpacingOne">
                         <div
@@ -151,10 +237,16 @@ const CreateStore = () => {
                                 <Field
                                   type="text"
                                   name="brand_name"
-                                  className={`form-control ${errors.brand_name && touched.brand_name ? 'is-invalid' : ''}`}
-                                  placeholder="Enter store name"
+                                  className={`form-control ${
+                                    errors.brand_name && touched.brand_name ? "is-invalid" : ""
+                                  }`}
+                                  placeholder="Enter Store Name"
                                 />
-                                <ErrorMessage name="brand_name" component="div" className="text-danger mt-1" />
+                                <ErrorMessage
+                                  name="brand_name"
+                                  component="div"
+                                  className="text-danger"
+                                />
                               </div>
                             </div>
                             <div className="col-sm-6 col-12">
@@ -163,29 +255,61 @@ const CreateStore = () => {
                                   Phone Number<span className="text-danger ms-1">*</span>
                                 </label>
                                 <Field
-                                  type="tel"
+                                  type="text"
                                   name="phone_number"
-                                  className={`form-control ${errors.phone_number && touched.phone_number ? 'is-invalid' : ''}`}
-                                  placeholder="Enter phone number"
+                                  className={`form-control ${
+                                    errors.phone_number && touched.phone_number ? "is-invalid" : ""
+                                  }`}
+                                  placeholder="Enter Phone Number"
                                 />
-                                <ErrorMessage name="phone_number" component="div" className="text-danger mt-1" />
+                                <ErrorMessage
+                                  name="phone_number"
+                                  component="div"
+                                  className="text-danger"
+                                />
                               </div>
                             </div>
-                          </div>
-                          
-                          {/* Description */}
-                          <div className="col-lg-12">
-                            <div className="summer-description-box">
-                              <label className="form-label">Store Description<span className="text-danger ms-1">*</span></label>
-                              <Field
-                                as="textarea"
-                                name="description"
-                                className={`form-control ${errors.description && touched.description ? 'is-invalid' : ''}`}
-                                placeholder="Describe your store and what you sell"
-                                rows="4"
-                              />
-                              <ErrorMessage name="description" component="div" className="text-danger mt-1" />
-                              <p className="fs-14 mt-1">Maximum 500 characters</p>
+                            <div className="col-12">
+                              <div className="mb-3">
+                                <label className="form-label">
+                                  Description<span className="text-danger ms-1">*</span>
+                                </label>
+                                <Field
+                                  as="textarea"
+                                  name="description"
+                                  className={`form-control ${
+                                    errors.description && touched.description ? "is-invalid" : ""
+                                  }`}
+                                  rows="3"
+                                  placeholder="Enter Store Description"
+                                />
+                                <ErrorMessage
+                                  name="description"
+                                  component="div"
+                                  className="text-danger"
+                                />
+                              </div>
+                            </div>
+                            <div className="col-12">
+                              <div className="mb-3">
+                                <label className="form-label">Store Image</label>
+                                <input
+                                  type="file"
+                                  className="form-control"
+                                  accept="image/*"
+                                  onChange={handleImageChange}
+                                />
+                                {storeImage && (
+                                  <div className="mt-2">
+                                    <img
+                                      src={storeImage}
+                                      alt="Store Preview"
+                                      className="img-thumbnail"
+                                      style={{ maxWidth: "150px" }}
+                                    />
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -198,13 +322,13 @@ const CreateStore = () => {
                           className="accordion-button collapsed bg-white"
                           data-bs-toggle="collapse"
                           data-bs-target="#SpacingTwo"
-                          aria-expanded="true"
+                          aria-expanded="false"
                           aria-controls="SpacingTwo"
                         >
                           <div className="d-flex align-items-center justify-content-between flex-fill">
                             <h5 className="d-flex align-items-center">
-                              <Info className="text-primary me-2" />
-                              <span>Store Address</span>
+                              <Info className="text-primary me-2"/>
+                              <span>Address Information</span>
                             </h5>
                           </div>
                         </div>
@@ -224,10 +348,16 @@ const CreateStore = () => {
                                 <Field
                                   type="text"
                                   name="state"
-                                  className={`form-control ${errors.state && touched.state ? 'is-invalid' : ''}`}
-                                  placeholder="Enter state"
+                                  className={`form-control ${
+                                    errors.state && touched.state ? "is-invalid" : ""
+                                  }`}
+                                  placeholder="Enter State"
                                 />
-                                <ErrorMessage name="state" component="div" className="text-danger mt-1" />
+                                <ErrorMessage
+                                  name="state"
+                                  component="div"
+                                  className="text-danger"
+                                />
                               </div>
                             </div>
                             <div className="col-sm-6 col-12">
@@ -238,15 +368,19 @@ const CreateStore = () => {
                                 <Field
                                   type="text"
                                   name="city"
-                                  className={`form-control ${errors.city && touched.city ? 'is-invalid' : ''}`}
-                                  placeholder="Enter city"
+                                  className={`form-control ${
+                                    errors.city && touched.city ? "is-invalid" : ""
+                                  }`}
+                                  placeholder="Enter City"
                                 />
-                                <ErrorMessage name="city" component="div" className="text-danger mt-1" />
+                                <ErrorMessage
+                                  name="city"
+                                  component="div"
+                                  className="text-danger"
+                                />
                               </div>
                             </div>
-                          </div>
-                          <div className="row">
-                            <div className="col-lg-12">
+                            <div className="col-12">
                               <div className="mb-3">
                                 <label className="form-label">
                                   Street Address<span className="text-danger ms-1">*</span>
@@ -254,65 +388,16 @@ const CreateStore = () => {
                                 <Field
                                   type="text"
                                   name="street"
-                                  className={`form-control ${errors.street && touched.street ? 'is-invalid' : ''}`}
-                                  placeholder="Enter street address"
+                                  className={`form-control ${
+                                    errors.street && touched.street ? "is-invalid" : ""
+                                  }`}
+                                  placeholder="Enter Street Address"
                                 />
-                                <ErrorMessage name="street" component="div" className="text-danger mt-1" />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="accordion-item border mb-4">
-                      <h2 className="accordion-header" id="headingSpacingThree">
-                        <div
-                          className="accordion-button collapsed bg-white"
-                          data-bs-toggle="collapse"
-                          data-bs-target="#SpacingThree"
-                          aria-expanded="true"
-                          aria-controls="SpacingThree"
-                        >
-                          <div className="d-flex align-items-center justify-content-between flex-fill">
-                            <h5 className="d-flex align-items-center">
-                              <Info className="text-primary me-2" />
-                              <span>Store Image</span>
-                            </h5>
-                          </div>
-                        </div>
-                      </h2>
-                      <div
-                        id="SpacingThree"
-                        className="accordion-collapse collapse show"
-                        aria-labelledby="headingSpacingThree"
-                      >
-                        <div className="accordion-body border-top">
-                          <div className="row">
-                            <div className="col-lg-12">
-                              <div className="mb-3">
-                                <label className="form-label">Store Logo/Image</label>
-                                <div className="upload-area">
-                                  <input
-                                    type="file"
-                                    accept="image/*"
-                                    className="form-control"
-                                    onChange={handleImageChange}
-                                  />
-                                  <p className="fs-14 mt-1 text-muted">
-                                    Recommended size: 300x300 pixels. Max file size: 5MB
-                                  </p>
-                                </div>
-                                {storeImage && (
-                                  <div className="mt-3">
-                                    <img
-                                      src={storeImage}
-                                      alt="Store preview"
-                                      className="img-thumbnail"
-                                      style={{ maxWidth: "200px", maxHeight: "200px" }}
-                                    />
-                                  </div>
-                                )}
+                                <ErrorMessage
+                                  name="street"
+                                  component="div"
+                                  className="text-danger"
+                                />
                               </div>
                             </div>
                           </div>
@@ -321,38 +406,24 @@ const CreateStore = () => {
                     </div>
                   </div>
                 </div>
-                
-                <div className="col-lg-12">
-                  <div className="d-flex align-items-center justify-content-end mb-4">
-                    <button 
-                      type="button" 
-                      className="btn btn-secondary me-2"
-                      onClick={() => navigate(route.index)}
-                    >
-                      Cancel
-                    </button>
-                    <button 
-                      type="submit" 
-                      className="btn btn-primary"
-                      disabled={isSubmitting || isCreating}
-                    >
-                      {isSubmitting || isCreating ? (
-                        <>
-                          <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                          Creating Store...
-                        </>
-                      ) : (
-                        "Create Store"
-                      )}
-                    </button>
-                  </div>
+
+                <div className="text-end">
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={isSubmitting || isCreating}
+                  >
+                    {isCreating ? "Creating Store..." : "Create Store"}
+                  </button>
                 </div>
               </Form>
             )}
-          </Formik>
+                </Formik>
+            </div>
+          </div>
         </div>
         
-        <div className="footer d-sm-flex align-items-center justify-content-between border-top bg-white p-3">
+        <div className="footer d-sm-flex align-items-center justify-content-between border-top bg-white p-3 mt-auto">
           <p className="mb-0 text-gray-9">
             2019 - 2025 © Bitshub. All Right Reserved
           </p>
@@ -368,4 +439,4 @@ const CreateStore = () => {
   );
 };
 
-export default CreateStore; 
+export default CreateStore;
