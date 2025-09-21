@@ -227,7 +227,7 @@ const StoreList = () => {
               <CollapesIcon />
             </ul>
             <div className="page-btn">
-              <Link to="/add-store" className="btn btn-primary">
+              <Link to="/create-store" className="btn btn-primary">
                 <PlusCircle data-feather="plus-circle" className=" me-2" />
                 Add Store
               </Link>
