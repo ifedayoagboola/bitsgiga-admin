@@ -175,13 +175,6 @@ export const publicRoutes = [
     route: Route,
   },
   {
-    id: 4,
-    path: routes.createStore,
-    name: "createStore",
-    element: <CreateStore />,
-    route: Route,
-  },
-  {
     id: 5,
     path: routes.brandlist,
     name: "brant",
@@ -1139,7 +1132,13 @@ export const pagesRoute = [
     element: <Signin />,
     route: Route,
   },
- 
+  {
+    id: 2,
+    path: routes.createStore,
+    name: "createStore",
+    element: <CreateStore />,
+    route: Route,
+  },
   {
     id: 4,
     path: routes.register,

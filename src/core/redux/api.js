@@ -46,6 +46,14 @@ export const api = createApi({
         params: { key }
       }),
     }),
+    
+    deleteUploadedObject: builder.mutation({
+      query: ({ key }) => ({
+        url: '/uploads',
+        method: 'DELETE',
+        params: { key }
+      }),
+    }),
     // ===== AUTHENTICATION ENDPOINTS =====
     adminLogin: builder.mutation({
       query: (credentials) => ({
@@ -85,7 +93,7 @@ export const api = createApi({
 
     getStores: builder.query({
       query: (params = {}) => ({
-        url: '/store',
+        url: '/store/seller',
         params,
       }),
       providesTags: (result) =>
@@ -462,6 +470,7 @@ export const {
   // Uploads
   usePresignUploadQuery,
   usePresignViewUrlQuery,
+  useDeleteUploadedObjectMutation,
   
   // Dashboard
   useGetDashboardStatsQuery,
