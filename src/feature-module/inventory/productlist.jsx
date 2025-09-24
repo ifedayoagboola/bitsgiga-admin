@@ -5,7 +5,7 @@ import {
   RotateCcw,
   Trash2,
 } from "feather-icons-react/build/IconComponents";
-import React from "react";
+import React, { useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import ImageWithBasePath from "../../core/img/imagewithbasebath";
@@ -13,11 +13,35 @@ import Brand from "../../core/modals/inventory/brand";
 import { all_routes } from "../../Router/all_routes";
 import { OverlayTrigger, Tooltip } from "react-bootstrap";
 import Table from "../../core/pagination/datatable";
+import { useGetSellerProductsQuery } from "../../core/redux/api";
 import { setToogleHeader } from "../../core/redux/action";
 import { Download } from "react-feather";
 
 const ProductList = () => {
-  const dataSource = useSelector((state) => state.rootReducer.product_list);
+  const fallbackData = useSelector((state) => state.rootReducer.product_list);
+  const { data: sellerProductsResponse, isLoading, isFetching, error, refetch } = useGetSellerProductsQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+    refetchOnFocus: true,
+    refetchOnReconnect: true,
+  });
+
+  const dataSource = useMemo(() => {
+    const items = sellerProductsResponse?.data;
+    if (!Array.isArray(items)) return fallbackData;
+    return items.map((p) => ({
+      id: p.id,
+      sku: p.sku || p.id?.slice(0, 8),
+      product: p.name,
+      productImage: p.img_url || "assets/img/products/placeholder.jpg",
+      category: p.category || p.category_id || "",
+      price: typeof p.amount === 'number' ? `$${p.amount}` : (p.price ? `$${p.price}` : "-"),
+      views: p.views ?? 0,
+      rating: p.rating ?? 0,
+      status: p.status ?? '',
+      createdby: p.created_by_name || "You",
+      img: "assets/img/profiles/avatar-03.jpg",
+    }));
+  }, [sellerProductsResponse, fallbackData]);
   const dispatch = useDispatch();
   const data = useSelector((state) => state.rootReducer.toggle_header);
 
@@ -53,24 +77,29 @@ const ProductList = () => {
     },
 
     {
-      title: "Brand",
-      dataIndex: "brand",
-      sorter: (a, b) => a.brand.length - b.brand.length,
-    },
-    {
       title: "Price",
       dataIndex: "price",
       sorter: (a, b) => a.price.length - b.price.length,
     },
     {
-      title: "Unit",
-      dataIndex: "unit",
-      sorter: (a, b) => a.unit.length - b.unit.length,
+      title: "Views",
+      dataIndex: "views",
+      sorter: (a, b) => (Number(a.views) || 0) - (Number(b.views) || 0),
     },
     {
-      title: "Qty",
-      dataIndex: "qty",
-      sorter: (a, b) => a.qty.length - b.qty.length,
+      title: "Rating",
+      dataIndex: "rating",
+      sorter: (a, b) => (Number(a.rating) || 0) - (Number(b.rating) || 0),
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      render: (text) => (
+        <span className={`badge ${String(text).toUpperCase() === 'ACTIVE' ? 'bg-success' : 'bg-secondary'} fw-medium fs-10`}>
+          {String(text || '').toUpperCase() || 'UNKNOWN'}
+        </span>
+      ),
+      sorter: (a, b) => String(a.status).localeCompare(String(b.status)),
     },
 
     {
@@ -564,7 +593,20 @@ const ProductList = () => {
             </div> */}
               {/* /Filter */}
               <div className="table-responsive">
-                <Table columns={columns} dataSource={dataSource} />
+                {(isLoading || isFetching) ? (
+                  <div className="d-flex justify-content-center align-items-center" style={{ height: "200px" }}>
+                    <div className="spinner-border text-primary" role="status">
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
+                  </div>
+                ) : error ? (
+                  <div className="d-flex flex-column justify-content-center align-items-center py-5">
+                    <div className="text-danger mb-2">Failed to load products</div>
+                    <button className="btn btn-secondary" onClick={() => refetch()}>Retry</button>
+                  </div>
+                ) : (
+                  <Table columns={columns} dataSource={dataSource} />
+                )}
               </div>
             </div>
           </div>

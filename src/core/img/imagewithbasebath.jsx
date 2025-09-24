@@ -11,9 +11,10 @@ interface Image {
 }
 
 const ImageWithBasePath = (props: Image) => {
-  // Combine the base path and the provided src to create the full image source URL
+  // Build image src: use absolute URLs as-is, otherwise prepend base image_path
   const altText = String(props.alt);
-  const fullSrc = `${image_path}${props.src}`;
+  const isAbsolute = /^https?:\/\//i.test(props.src) || props.src?.startsWith('data:');
+  const fullSrc = isAbsolute ? props.src : `${image_path}${props.src}`;
   return (
     <img
       className={props.className}

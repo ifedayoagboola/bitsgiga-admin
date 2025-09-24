@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Table } from "antd";
 
 const Datatable = ({ props, columns, dataSource }) => {
@@ -24,6 +24,20 @@ const Datatable = ({ props, columns, dataSource }) => {
     selectedRowKeys,
     onChange: onSelectChange,
   };
+
+  // Keep filtered data in sync when source changes
+  useEffect(() => {
+    if (!searchText) {
+      setFilteredDataSource(dataSource);
+    } else {
+      const filteredData = dataSource.filter((record) =>
+        Object.values(record).some((field) =>
+          String(field).toLowerCase().includes(searchText.toLowerCase())
+        )
+      );
+      setFilteredDataSource(filteredData);
+    }
+  }, [dataSource, searchText]);
 
   return (
     <>
