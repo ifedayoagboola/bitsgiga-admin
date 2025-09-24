@@ -212,6 +212,21 @@ export const api = createApi({
           : [{ type: 'Product', id: 'LIST' }],
     }),
 
+    // Get products for the authenticated seller
+    getSellerProducts: builder.query({
+      query: (params = {}) => ({
+        url: '/product/seller',
+        params,
+      }),
+      providesTags: (result) =>
+        result?.data
+          ? [
+              ...result.data.map(({ id }) => ({ type: 'Product', id })),
+              { type: 'Product', id: 'LIST' },
+            ]
+          : [{ type: 'Product', id: 'LIST' }],
+    }),
+
     getProduct: builder.query({
       query: (id) => `/product/${id}`,
       providesTags: (result, error, id) => [{ type: 'Product', id }],
@@ -444,6 +459,7 @@ export const {
   
   // Products
   useGetProductsQuery,
+  useGetSellerProductsQuery,
   useGetProductQuery,
   useCreateProductMutation,
   useCreateProductVariantMutation,
