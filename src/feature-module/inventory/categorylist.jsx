@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { useGetCategoriesQuery } from "../../core/redux/api";
+import AddCategory from "../../core/modals/inventory/addcategory";
 import EditCategoryList from "../../core/modals/inventory/editcategorylist";
 import Table from "../../core/pagination/datatable";
 import TooltipIcons from "../../core/common/tooltip-content/tooltipIcons";
@@ -11,7 +13,26 @@ import CommonDeleteModal from "../../core/common/modal/commonDeleteModal";
 
 const CategoryList = () => {
 
-  const dataSource = useSelector((state) => state.rootReducer.categotylist_data);
+  const fallbackData = useSelector((state) => state.rootReducer.categotylist_data);
+  const { data: categoriesResponse, isLoading } = useGetCategoriesQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+    refetchOnFocus: true,
+    refetchOnReconnect: true,
+  });
+
+  const dataSource = useMemo(() => {
+    const apiData = categoriesResponse?.data;
+    if (Array.isArray(apiData)) {
+      return apiData.map((c) => ({
+        id: c.id,
+        category: c.category,
+        categoryslug: c.slug || c.category?.toLowerCase?.()?.replace(/\s+/g, "-") || "",
+        createdon: c.created_at ? new Date(c.created_at).toLocaleDateString() : "",
+        status: c.is_active === false ? "Inactive" : "Active",
+      }));
+    }
+    return fallbackData;
+  }, [categoriesResponse, fallbackData]);
 
 
   const columns = [
@@ -88,7 +109,7 @@ const CategoryList = () => {
                 to="#"
                 className="btn btn-primary"
                 data-bs-toggle="modal"
-                data-bs-target="#add-category"
+                data-bs-target="#add-units-category"
               >
                 <i className='ti ti-circle-plus me-1'></i>
                 Add Category
@@ -185,7 +206,7 @@ const CategoryList = () => {
             </div>
             <div className="card-body">
               <div className="table-responsive category-table">
-                <Table columns={columns} dataSource={dataSource} />
+                <Table loading={isLoading} columns={columns} dataSource={dataSource} />
               </div>
             </div>
           </div>
@@ -194,77 +215,7 @@ const CategoryList = () => {
         <CommonFooter />
       </div>
 
-      {/* Add Category */}
-      <div className="modal fade" id="add-category">
-        <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content">
-            <div className="page-wrapper-new p-0">
-              <div className="content">
-                <div className="modal-header">
-                  <div className="page-title">
-                    <h4>Add Category</h4>
-                  </div>
-                  <button
-                    type="button"
-                    className="close bg-danger text-white fs-16"
-                    data-bs-dismiss="modal"
-                    aria-label="Close"
-                  >
-                    <span aria-hidden="true">×</span>
-                  </button>
-                </div>
-                <div className="modal-body">
-                  <form>
-                    <div className="mb-3">
-                      <label className="form-label">
-                        Category<span className="text-danger ms-1">*</span>
-                      </label>
-                      <input type="text" className="form-control" />
-                    </div>
-                    <div className="mb-3">
-                      <label className="form-label">
-                        Category Slug<span className="text-danger ms-1">*</span>
-                      </label>
-                      <input type="text" className="form-control" />
-                    </div>
-                    <div className="mb-0">
-                      <div className="status-toggle modal-status d-flex justify-content-between align-items-center">
-                        <span className="status-label">
-                          Status<span className="text-danger ms-1">*</span>
-                        </span>
-                        <input
-                          type="checkbox"
-                          id="user2"
-                          className="check"
-                          defaultChecked
-                        />
-                        <label htmlFor="user2" className="checktoggle" />
-                      </div>
-                    </div>
-                  </form>
-                </div>
-                <div className="modal-footer">
-                  <button
-                    type="button"
-                    className="btn me-2 btn-secondary fs-13 fw-medium p-2 px-3 shadow-none"
-                    data-bs-dismiss="modal"
-                  >
-                    Cancel
-                  </button>
-                  <Link
-                    to="#"
-                    data-bs-dismiss="modal"
-                    className="btn btn-primary fs-13 fw-medium p-2 px-3"
-                  >
-                    Add Category
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      {/* /Add Category */}
+      <AddCategory />
 
 
       <EditCategoryList />
