@@ -38,7 +38,7 @@ const ProductList = () => {
       views: p.views ?? 0,
       rating: p.rating ?? 0,
       status: p.status ?? '',
-      createdby: p.created_by_name || "You",
+      createdby: p.updated_at ? new Date(p.updated_at).toLocaleDateString() : "N/A",
       img: "assets/img/profiles/avatar-03.jpg",
     }));
   }, [sellerProductsResponse, fallbackData]);
@@ -61,7 +61,7 @@ const ProductList = () => {
       render: (text, record) => (
         <div className="d-flex align-items-center">
           <Link to="#" className="avatar avatar-md me-2">
-            <ImageWithBasePath alt="" src={record.productImage} />
+            <ImageWithBasePath alt="" src={record.productImage} isR2={true} />
           </Link>
           <Link to="#">{text}</Link>
         </div>
@@ -103,15 +103,10 @@ const ProductList = () => {
     },
 
     {
-      title: "Created By",
+      title: "Last Updated",
       dataIndex: "createdby",
-      render: (text, record) => (
-        <span className="userimgname">
-          <Link to="/profile" className="product-img">
-            <ImageWithBasePath alt="" src={record.img} />
-          </Link>
-          <Link to="/profile">{text}</Link>
-        </span>
+      render: (text) => (
+        <span>{text}</span>
       ),
       sorter: (a, b) => a.createdby.length - b.createdby.length,
     },
