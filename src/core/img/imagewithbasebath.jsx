@@ -1,5 +1,5 @@
 import React from 'react';
-import { image_path } from '../../environment';
+import { image_path, static_image_path } from '../../environment';
 
 interface Image {
   className?: string;
@@ -7,14 +7,16 @@ interface Image {
   alt?: string;
   height?: number;
   width?: number;
-  id?:string;
+  id?: string;
+  isR2?: boolean; // Explicit flag for R2 images
 }
 
 const ImageWithBasePath = (props: Image) => {
-  // Build image src: use absolute URLs as-is, otherwise prepend base image_path
   const altText = String(props.alt);
   const isAbsolute = /^https?:\/\//i.test(props.src) || props.src?.startsWith('data:');
-  const fullSrc = isAbsolute ? props.src : `${image_path}${props.src}`;
+  const basePath = props.isR2 ? image_path : static_image_path;
+  const fullSrc = isAbsolute ? props.src : `${basePath}${props.src}`;
+
   return (
     <img
       className={props.className}
